@@ -123,8 +123,8 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
-
-        return self.minimax(gameState=gameState, agentIndex=self.index, depth=0)
+        best_action, best_score = self.minimax(gameState=gameState, agentIndex=self.index, depth=0)
+        return best_action
 
     def minimax(self, gameState, agentIndex, depth):
         """
@@ -144,21 +144,32 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
 
         if depth == self.depth:
             # Base case #1: max depth reached
-            return gameState.getScore()[0], None
+            return None, gameState.getScore()[0]
         else:
             if agentIndex == 0:
                 # agent index = 0 -> the current move is as the pacman agent
 
                 # Base case #2: pacman moves to winning game state
                 if gameState.isWin():
-                    return gameState.getScore()[0] + 1000, None
+                    return None, gameState.getScore()[0] + 1000
                 # Base case #3: pacman moves to winning game state
                 elif gameState.isLose():
-                    return gameState.getScore()[0] - 1000, None
+                    return None, gameState.getScore()[0] - 1000
                 else:
-                    # look at all legal moves, get minimax values
-
-            else:
+                    # get all legal moves for this pacman state
+                    legal_moves = gameState.getLegalActions()
+                    # find max of potential moves recursively
+                    moves = {}
+                    for move_idx in legal_moves:
+                        prospective_state = gameState.generatePacmanSuccessor(0, move_idx)
+                        move, prospective_score = self.minimax(prospective_state, 0, depth + 1)
+                        if move == None:
+                            move = 'Stop'
+                        moves[move] = prospective_score
+                    # after finding all potential move scores, return their max value
+                    print('move are,', moves)
+                    return max(moves), max(moves, key=moves.get)
+            #else:
                 # agent index > 0 -> the current move is as a ghost agent
 
         
