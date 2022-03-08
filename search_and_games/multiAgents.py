@@ -122,7 +122,7 @@ class MultiAgentSearchAgent(Agent):
     is another abstract class.
     """
 
-    def __init__(self, index=0, evalFn='scoreEvaluationFunction', depth='1'):
+    def __init__(self, index=0, evalFn='scoreEvaluationFunction', depth='25'):
         self.index = index  # Pacman is always agent index 0
         self.evaluationFunction = lambda state: util.lookup(evalFn, globals())(state, self.index)
         self.depth = int(depth)
@@ -150,17 +150,22 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
 
         # pacman index = 0
         index = self.index
-
-        # we look recursively up to a depth of self.depth, starting from the current game state
-        # start in the current state
-
-        # Collect legal moves and successor states
+        current_depth = 0
         legal_moves = gameState.getLegalActions(self.index)
         legal_moves.remove('Stop')
         legal_next_states = [gameState.generateSuccessor(self.index, action)
                              for action in legal_moves]
-        next_move_scores = [self.evaluationFunction(nextLegalState)
-                            for nextLegalState in legal_next_states]
+        next_move_scores = list()
+
+        print('Evaluating from ', legal_moves)
+
+        for move in legal_moves:
+            # get maximal score from current game state (look up to 'depth' moves ahead)
+            successorGameState = gameState.generatePacmanSuccessor(self.index, move)
+            score = maxPointsFromMoveWithDepth(self, depth=current_depth + 1, gameState=successorGameState)
+            # print the move and max score (checked up to depth of self.depth)
+            print(move, score)
+            next_move_scores.append(score)
 
         # from the legal moves, select those with equal scores
         best_next_score = max(next_move_scores)
@@ -168,7 +173,6 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
                                  if next_move_scores[index] == best_next_score]
         chosen_index = random.choice(best_next_score_moves)  # Pick randomly among the best
 
-        print('Evaluating from ', legal_moves)
         for idx, move, score in zip(range(len(legal_moves)), legal_moves, next_move_scores):
             if idx != chosen_index:
                 print(move, score)
@@ -177,9 +181,46 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
 
         return legal_moves[chosen_index]
 
-def maxPointsMove():
-    return 0
-    #return legal_moves[chosen_index]
+# recursive function
+# returns the best move (maximizing points) based on the maximum depth (self.depth)
+# base case: either depth is reached, or game is won
+def maxPointsFromMoveWithDepth(self, depth, gameState):
+    indent = ''
+    for i in range(depth):
+        indent += '    '
+
+    if gameState.isWin() or depth == self.depth:
+        score = gameState.getScore()[self.index]
+        return score
+    elif gameState.isLose():
+        return -10000
+    else:
+        legal_moves = gameState.getLegalActions(self.index)
+        legal_moves.remove('Stop')
+        legal_next_states = [gameState.generateSuccessor(self.index, action)
+                             for action in legal_moves]
+        next_move_scores = list()
+
+        for move in legal_moves:
+            # get maximal score from current game state (look up to 'depth' moves ahead)
+            successorGameState = gameState.generatePacmanSuccessor(self.index, move)
+            score = maxPointsFromMoveWithDepth(self, depth=depth + 1, gameState=successorGameState)
+            next_move_scores.append(score)
+
+        # from the legal moves, select those with equal scores
+        best_next_score = max(next_move_scores)
+        best_next_score_moves = [index for index in range(len(next_move_scores))
+                                 if next_move_scores[index] == best_next_score]
+        chosen_index = random.choice(best_next_score_moves)  # Pick randomly among the best
+
+        for idx, move, score in zip(range(len(legal_moves)), legal_moves, next_move_scores):
+            if idx != chosen_index:
+                print(indent, move, score)
+            else:
+                print(indent, move, score, " < ---")
+
+        # print(indent, 'score: ', score)
+        return best_next_score
 
 
 class RandomAgent(MultiAgentSearchAgent):
