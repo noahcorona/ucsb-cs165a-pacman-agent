@@ -122,7 +122,7 @@ class MultiAgentSearchAgent(Agent):
     is another abstract class.
     """
 
-    def __init__(self, index=0, evalFn='scoreEvaluationFunction', depth='25'):
+    def __init__(self, index=0, evalFn='scoreEvaluationFunction', depth='3'):
         self.index = index  # Pacman is always agent index 0
         self.evaluationFunction = lambda state: util.lookup(evalFn, globals())(state, self.index)
         self.depth = int(depth)
@@ -189,7 +189,9 @@ def maxPointsFromMoveWithDepth(self, depth, gameState):
     for i in range(depth):
         indent += '    '
 
-    if gameState.isWin() or depth == self.depth:
+    if gameState.isWin():
+        return 10000
+    elif depth == self.depth:
         score = gameState.getScore()[self.index]
         return score
     elif gameState.isLose():
