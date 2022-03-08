@@ -122,7 +122,7 @@ class MultiAgentSearchAgent(Agent):
     is another abstract class.
     """
 
-    def __init__(self, index=0, evalFn='scoreEvaluationFunction', depth='3'):
+    def __init__(self, index=0, evalFn='scoreEvaluationFunction', depth='5'):
         self.index = index  # Pacman is always agent index 0
         self.evaluationFunction = lambda state: util.lookup(evalFn, globals())(state, self.index)
         self.depth = int(depth)
@@ -185,9 +185,10 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
 # returns the best move (maximizing points) based on the maximum depth (self.depth)
 # base case: either depth is reached, or game is won
 def maxPointsFromMoveWithDepth(self, depth, gameState):
-    indent = ''
-    for i in range(depth):
-        indent += '    '
+    # simulate the ghosts all moving 1 move closer (manhattan distance)
+
+
+    print('depth: ', depth)
 
     if gameState.isWin():
         return 10000
@@ -203,10 +204,13 @@ def maxPointsFromMoveWithDepth(self, depth, gameState):
                              for action in legal_moves]
         next_move_scores = list()
 
+        # print out ghost locations of current game state
+
         for move in legal_moves:
             # get maximal score from current game state (look up to 'depth' moves ahead)
             successorGameState = gameState.generatePacmanSuccessor(self.index, move)
             score = maxPointsFromMoveWithDepth(self, depth=depth + 1, gameState=successorGameState)
+            print('ghosts: ', successorGameState.getGhostPositions())
             next_move_scores.append(score)
 
         # from the legal moves, select those with equal scores
@@ -217,9 +221,9 @@ def maxPointsFromMoveWithDepth(self, depth, gameState):
 
         for idx, move, score in zip(range(len(legal_moves)), legal_moves, next_move_scores):
             if idx != chosen_index:
-                print(indent, move, score)
+                print(move, score)
             else:
-                print(indent, move, score, " < ---")
+                print(move, score, " < ---")
 
         # print(indent, 'score: ', score)
         return best_next_score
