@@ -18,7 +18,6 @@ import random, util
 
 from game import Agent
 
-
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -28,6 +27,7 @@ class ReflexAgent(Agent):
     it in any way you see fit, so long as you don't touch our method
     headers.
     """
+
 
     def getAction(self, gameState):
         """
@@ -40,12 +40,12 @@ class ReflexAgent(Agent):
         """
         # Collect legal moves and successor states
         legalMoves = gameState.getLegalActions(self.index)
-        print('legal moves:', legalMoves)
+
         # Choose one of the best actions
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
+        chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
         "Add more of your code here if you want to"
 
@@ -68,33 +68,14 @@ class ReflexAgent(Agent):
         successorGameState = currentGameState.generatePacmanSuccessor(self.index, action)
         newPos = successorGameState.getPacmanPosition(self.index)
         newFood = successorGameState.getFood()
-        newGhostPositions = successorGameState.getGhostPositions()
-
-        if currentGameState.getPacmanPosition(self.index) == newPos:
-            return -1000
-
-        newGhostDistances = list()
-        for ghostPos in newGhostPositions:
-            ghostDist = util.manhattanDistance(newPos, ghostPos)
-            newGhostDistances.append(ghostDist)
-        minGhostDist = min(newGhostDistances)
+        newGhostStates = successorGameState.getGhostStates()
 
         if len(newFood.asList()):
-            newFoodDistances = list()
-            for foodPos in newFood.asList():
-                foodDist = util.manhattanDistance(newPos, foodPos)
-                newFoodDistances.append(foodDist)
-            minFoodDist = min(newFoodDistances)
+            fooddist = util.manhattanDistance(newPos, newFood.asList()[0])
         else:
-            minFoodDist = 0
+            fooddist = 0
 
-        print('food dist: ', minFoodDist)
-        print('min ghost dist', newGhostDistances[0])
-        score = successorGameState.getScore()[self.index] - 2 * minFoodDist + 3 * minGhostDist
-        print('move score (' + str(action) + '): ' + str(score))
-
-        return score
-
+        return successorGameState.getScore()[self.index] - fooddist
 
 def scoreEvaluationFunction(currentGameState, index):
     """
@@ -104,132 +85,88 @@ def scoreEvaluationFunction(currentGameState, index):
     This evaluation function is meant for use with adversarial search agents
     (not reflex agents).
     """
-    return currentGameState.getScore()[index]
+    # Useful information you can extract from a GameState (pacman.py)
+    newPos = currentGameState.getPacmanPosition(index)
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+
+    if len(newFood.asList()):
+        fooddist = util.manhattanDistance(newPos, newFood.asList()[0])
+    else:
+        fooddist = 0
+
+    return currentGameState.getScore()[index] - fooddist
 
 
 class MultiAgentSearchAgent(Agent):
     """
     This class provides some common elements to all of your
     multi-agent searchers.  Any methods defined here will be available
-    to the MinimaxPacmanAgent & AlphaBetaPacmanAgent.
-
-    You *do not* need to make any changes here, but you can if you want to
-    add functionality to all your adversarial search agents.  Please do not
-    remove anything, however.
-
-    Note: this is an abstract class: one that should not be instantiated.  It's
-    only partially specified, and designed to be extended.  Agent (game.py)
-    is another abstract class.
+    to the MinimaxPacmanAgent.
     """
 
-    def __init__(self, index=0, evalFn='scoreEvaluationFunction', depth='1'):
-        self.index = index  # Pacman is always agent index 0
-        self.evaluationFunction = lambda state: util.lookup(evalFn, globals())(state, self.index)
+    def __init__(self, index = 0, evalFn = 'scoreEvaluationFunction', depth = '2'):
+        self.index = index # Pacman is always agent index 0
+        self.evaluationFunction = lambda state:util.lookup(evalFn, globals())(state, self.index)
         self.depth = int(depth)
 
 
 class MultiPacmanAgent(MultiAgentSearchAgent):
     """
-    You implementation here
+    This is my implementation of a minimax agent.
+
+    We recursively check for the optimal solution for pacman, assuming
+    that ghost agents move randomly
     """
 
     def getAction(self, gameState):
         """
-        Returns the expectimax action using self.depth and self.evaluationFunction
-
-        All ghosts should be modeled as choosing uniformly at random from their
-        legal moves.
-
-        Some functions you may need:
-        if gameState.isWin() or gameState.isLose():
-            return self.evaluationFunction(gameState)
-        legalMoves = gameState.getLegalActions(agent)
-        legalNextState = [gameState.generateSuccessor(agent, action)
-                          for action in legalMoves]
+        Returns the minimax action using self.depth and self.evaluationFunction
         """
 
-        # pacman index = 0
-        index = self.index
-        current_depth = 0
-        legal_moves = gameState.getLegalActions(self.index)
-        legal_moves.remove('Stop')
-        legal_next_states = [gameState.generateSuccessor(self.index, action)
-                             for action in legal_moves]
-        next_move_scores = list()
+        return self.minimax(gameState=gameState, agentIndex=self.index, depth=0)
 
-        print('Evaluating from ', legal_moves)
+    def minimax(self, gameState, agentIndex, depth):
+        """
+        The recursive minimax function for both pacman (-> max) and ghost (-> min) agents
 
-        for move in legal_moves:
-            # get maximal score from current game state (look up to 'depth' moves ahead)
-            successorGameState = gameState.generatePacmanSuccessor(self.index, move)
-            score = maxPointsFromMoveWithDepth(self, depth=current_depth + 1, gameState=successorGameState)
-            # print the move and max score (checked up to depth of self.depth)
-            print(move, score)
-            next_move_scores.append(score)
+        gameState: state of the current (prospective) game
+        agentIndex: index of the current agent (0 for pacman, 1, 2, ... for each ghost)
+        depth: depth of the current (prospective) game, i.e. number of moves forward we're looking
 
-        # from the legal moves, select those with equal scores
-        best_next_score = max(next_move_scores)
-        best_next_score_moves = [index for index in range(len(next_move_scores))
-                                 if next_move_scores[index] == best_next_score]
-        chosen_index = random.choice(best_next_score_moves)  # Pick randomly among the best
+        The base cases for the recursion
+            1. We have reached the specified max depth (return score)
+            2. We are playing pacman and have reached a winning game state (return score + incentive)
+               and there are no more states to explore
+            3. We are playing pacman and have reached a losing game state (return score - incentive)
+               and there are no more states to explore
+        """
 
-        for idx, move, score in zip(range(len(legal_moves)), legal_moves, next_move_scores):
-            if idx != chosen_index:
-                print(move, score)
+        if depth == self.depth:
+            # Base case #1: max depth reached
+            return gameState.getScore()[0], None
+        else:
+            if agentIndex == 0:
+                # agent index = 0 -> the current move is as the pacman agent
+
+                # Base case #2: pacman moves to winning game state
+                if gameState.isWin():
+                    return gameState.getScore()[0] + 1000, None
+                # Base case #3: pacman moves to winning game state
+                elif gameState.isLose():
+                    return gameState.getScore()[0] - 1000, None
+                else:
+                    # look at all legal moves, get minimax values
+
             else:
-                print(move, score, " < ---")
+                # agent index > 0 -> the current move is as a ghost agent
 
-        return legal_moves[chosen_index]
-
-# recursive function
-# returns the best move (maximizing points) based on the maximum depth (self.depth)
-# base case: either depth is reached, or game is won
-def maxPointsFromMoveWithDepth(self, depth, gameState):
-    # simulate the ghosts all moving 1 move closer (manhattan distance)
-
-
-    print('depth: ', depth)
-
-    if gameState.isWin():
-        return 10000
-    elif depth == self.depth:
-        score = gameState.getScore()[self.index]
-        return score
-    elif gameState.isLose():
-        return -10000
-    else:
-        legal_moves = gameState.getLegalActions(self.index)
-        legal_moves.remove('Stop')
-        legal_next_states = [gameState.generateSuccessor(self.index, action)
-                             for action in legal_moves]
-        next_move_scores = list()
-
-        # print out ghost locations of current game state
-
-        for move in legal_moves:
-            # get maximal score from current game state (look up to 'depth' moves ahead)
-            successorGameState = gameState.generatePacmanSuccessor(self.index, move)
-            score = maxPointsFromMoveWithDepth(self, depth=depth + 1, gameState=successorGameState)
-            print('ghosts: ', successorGameState.getGhostPositions())
-            next_move_scores.append(score)
-
-        # from the legal moves, select those with equal scores
-        best_next_score = max(next_move_scores)
-        best_next_score_moves = [index for index in range(len(next_move_scores))
-                                 if next_move_scores[index] == best_next_score]
-        chosen_index = random.choice(best_next_score_moves)  # Pick randomly among the best
-
-        for idx, move, score in zip(range(len(legal_moves)), legal_moves, next_move_scores):
-            if idx != chosen_index:
-                print(move, score)
-            else:
-                print(move, score, " < ---")
-
-        # print(indent, 'score: ', score)
-        return best_next_score
-
-
+        
 class RandomAgent(MultiAgentSearchAgent):
     def getAction(self, gameState):
-        legal_moves = gameState.getLegalActions(self.index)
-        return random.choice(legal_moves)
+        legalMoves = gameState.getLegalActions(self.index)
+        return random.choice(legalMoves)
+
+
+
+
