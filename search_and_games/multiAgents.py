@@ -10,7 +10,7 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
+from math import floor
 
 from util import manhattanDistance
 from game import Directions
@@ -132,7 +132,7 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         best_action, best_score = self.minimax(game_state=gameState, agent_index=self.index, depth=0)
-        print('making move, ', best_action)
+        #print('making move, ', best_action)
         return best_action
 
     def minimax(self, game_state, agent_index, depth):
@@ -150,38 +150,53 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
             3. We are playing pacman and have reached a losing game state (return score - incentive)
                and there are no more states to explore
         """
-        newPos = game_state.getPacmanPosition(0)
-        newFood = game_state.getFood()
-        newGhostPositions = game_state.getGhostPositions()
 
-        if len(newFood.asList()):
-            fooddist = util.manhattanDistance(newPos, newFood.asList()[0])
-        else:
-            fooddist = 0
+        position = game_state.getPacmanPosition(0)
+        food = game_state.getFood()
+        ghost_positions = game_state.getGhostPositions()
 
-        newGhostDistances = list()
-        for ghostPos in newGhostPositions:
-            ghostDist = util.manhattanDistance(newPos, ghostPos)
-            newGhostDistances.append(ghostDist)
-        minGhostDist = min(newGhostDistances)
+        ghost_distances = list()
+        for ghostPos in ghost_positions:
+            ghost_dist = util.manhattanDistance(position, ghostPos)
+            ghost_distances.append(ghost_dist)
+        min_ghost_dist = min(ghost_distances)
+        if min_ghost_dist == 0:
+            min_ghost_dist = 0.001
 
-        print(minGhostDist)
-        print(fooddist)
+        # to incentivize moving toward the average food area
+        # we also consider the point of the average food location
+        food_avg_dist = 0.001
+        food_dist = 0.001
+        score = 0
+        if len (food.asList()):
+            x = 0.0
+            y = 0.0
+            food_dist = util.manhattanDistance(position, food.asList()[0])
+            for food_loc in food.asList():
+                x += food_loc[0]
+                y += food_loc[1]
+            x /= floor(len(food.asList()))
+            y /= floor(len(food.asList()))
 
-        # need to incentivize moving toward the average food area
-        
-
-        prospective_score = game_state.getScore()[0] - 20 * fooddist + 30 * minGhostDist
+            food_avg_dist = manhattanDistance(position, (floor(x), floor(y)))
+            #print('food avg dist: {:.2f}'.format(food_avg_dist))
+            score = game_state.getScore()[0]
+        if score == 0:
+            score = 0.001
+        if food_avg_dist == 0:
+            food_avg_dist = 0.001
+        #print('avg food location: ', x, y)
+        prospective_score = score - food_dist
 
         if depth == self.depth:
             # Base case #1: max depth reached
             return None, prospective_score
         # Base case #2: pacman moves to winning game state
         elif game_state.isWin():
-            return None, prospective_score + 1000
+            return None, 10000
         # Base case #3: pacman moves to winning game state
         elif game_state.isLose():
-            return None, prospective_score - 1000
+            return None, -10000
         else:
             indent = ''
             for i in range(depth):
@@ -204,20 +219,20 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
                         next_agent = 0
                         next_depth = depth + 1
 
-                    print(indent, 'evaluating pacman move: ', move)
+                    #print(indent, 'evaluating pacman move: ', move)
                     prospective_state = game_state.generatePacmanSuccessor(0, move)
                     _, prospective_score = self.minimax(game_state=prospective_state, agent_index=next_agent,
                                                         depth=next_depth)
                     if prospective_score > max_score:
                         max_score = prospective_score
                         max_score_move = move
-                    print(indent, '    giving prospective score of ', prospective_score)
+                    #print(indent, '    giving prospective score of ', prospective_score)
                     prospective_scores.append(prospective_score)
                 # after finding all potential move scores & max one, return the max
 
-                print(indent, 'moves are: ', prospective_moves)
-                print(indent, 'max score move: ', max_score_move)
-                print(indent, 'score is ', max_score)
+                #print(indent, 'moves are: ', prospective_moves)
+                #print(indent, 'max score move: ', max_score_move)
+                #print(indent, 'score is ', max_score)
                 return max_score_move, max_score
             else:
                 # find min of potential moves recursively
