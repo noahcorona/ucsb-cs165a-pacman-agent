@@ -14,9 +14,10 @@
 
 from util import manhattanDistance
 from game import Directions
-import random, util
+import random, util, time
 
 from game import Agent
+
 
 class ReflexAgent(Agent):
     """
@@ -27,7 +28,6 @@ class ReflexAgent(Agent):
     it in any way you see fit, so long as you don't touch our method
     headers.
     """
-
 
     def getAction(self, gameState):
         """
@@ -45,10 +45,9 @@ class ReflexAgent(Agent):
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+        chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
 
         "Add more of your code here if you want to"
-
         return legalMoves[chosenIndex]
 
     def evaluationFunction(self, currentGameState, action):
@@ -76,6 +75,7 @@ class ReflexAgent(Agent):
             fooddist = 0
 
         return successorGameState.getScore()[self.index] - fooddist
+
 
 def scoreEvaluationFunction(currentGameState, index):
     """
@@ -105,9 +105,9 @@ class MultiAgentSearchAgent(Agent):
     to the MinimaxPacmanAgent.
     """
 
-    def __init__(self, index = 0, evalFn = 'scoreEvaluationFunction', depth = '2'):
-        self.index = index # Pacman is always agent index 0
-        self.evaluationFunction = lambda state:util.lookup(evalFn, globals())(state, self.index)
+    def __init__(self, index=0, evalFn='scoreEvaluationFunction', depth='3'):
+        self.index = index  # Pacman is always agent index 0
+        self.evaluationFunction = lambda state: util.lookup(evalFn, globals())(state, self.index)
         self.depth = int(depth)
 
 
@@ -123,10 +123,13 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
-        best_action, best_score = self.minimax(gameState=gameState, agentIndex=self.index, depth=0)
+        best_action, best_score = self.minimax(game_state=gameState, agent_index=self.index, depth=0)
+        print('making move, ', best_action)
+        # print()
+        # time.sleep(3)
         return best_action
 
-    def minimax(self, gameState, agentIndex, depth):
+    def minimax(self, game_state, agent_index, depth):
         """
         The recursive minimax function for both pacman (-> max) and ghost (-> min) agents
 
@@ -142,42 +145,92 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
                and there are no more states to explore
         """
 
+        prospective_score = game_state.getScore()[0]
+
         if depth == self.depth:
             # Base case #1: max depth reached
-            return None, gameState.getScore()[0]
+            return None, prospective_score
+        # Base case #2: pacman moves to winning game state
+        elif game_state.isWin():
+            return None, prospective_score + 1000
+        # Base case #3: pacman moves to winning game state
+        elif game_state.isLose():
+            return None, prospective_score - 1000
         else:
-            if agentIndex == 0:
+            if agent_index == 0:
                 # agent index = 0 -> the current move is as the pacman agent
+                # get all legal moves for this game state
+                legal_moves = game_state.getLegalActions()
+                # find max of potential moves recursively
+                indent = ''
+                for i in range(depth):
+                    indent += '   '
 
-                # Base case #2: pacman moves to winning game state
-                if gameState.isWin():
-                    return None, gameState.getScore()[0] + 1000
-                # Base case #3: pacman moves to winning game state
-                elif gameState.isLose():
-                    return None, gameState.getScore()[0] - 1000
-                else:
-                    # get all legal moves for this pacman state
-                    legal_moves = gameState.getLegalActions()
-                    # find max of potential moves recursively
-                    moves = {}
-                    for move_idx in legal_moves:
-                        prospective_state = gameState.generatePacmanSuccessor(0, move_idx)
-                        move, prospective_score = self.minimax(prospective_state, 0, depth + 1)
-                        if move == None:
-                            move = 'Stop'
-                        moves[move] = prospective_score
-                    # after finding all potential move scores, return their max value
-                    print('move are,', moves)
-                    return max(moves), max(moves, key=moves.get)
-            #else:
-                # agent index > 0 -> the current move is as a ghost agent
+                prospective_scores = list()
+                max_score = -9999999
+                max_score_move = None
 
-        
+                for move in legal_moves:
+                    next_agent = agent_index + 1
+                    next_depth = depth
+
+                    if next_agent == game_state.getNumAgents():
+                        next_agent = 0
+                        next_depth = depth + 1
+
+                    print(indent, 'evaluating pacman move: ', move)
+                    prospective_state = game_state.generatePacmanSuccessor(0, move)
+                    _, prospective_score = self.minimax(game_state=prospective_state, agent_index=next_agent,
+                                                        depth=next_depth)
+                    if prospective_score > max_score:
+                        max_score = prospective_score
+                        max_score_move = move
+                    print(indent, '    giving prospective score of ', prospective_score)
+                    prospective_scores.append(prospective_score)
+                # after finding all potential move scores & best one, return their max value
+
+                print(indent, 'moves are: ', legal_moves)
+                print(indent, 'max score move: ', max_score_move)
+                print(indent, 'score is ', max_score)
+                return max_score_move, max_score
+            else:
+                # get all legal moves for this game state
+                legal_moves = game_state.getLegalActions(agent_index)
+                # find max of potential moves recursively
+                indent = ''
+                for i in range(depth):
+                    indent += '   '
+
+                prospective_scores = list()
+                min_score = 9999999
+                min_score_move = None
+
+                for move in legal_moves:
+                    next_agent = agent_index + 1
+                    next_depth = depth
+
+                    if next_agent == game_state.getNumAgents():
+                        next_agent = 0
+                        next_depth = depth + 1
+
+                    print(indent, 'evaluating ghost move: ', move)
+                    prospective_state = game_state.generateSuccessor(agent_index, move)
+                    _, prospective_score = self.minimax(game_state=prospective_state, agent_index=next_agent,
+                                                        depth=next_depth)
+                    if prospective_score < min_score:
+                        min_score = prospective_score
+                        min_score_move = move
+                    print(indent, '    giving prospective score of ', prospective_score)
+                    prospective_scores.append(prospective_score)
+                # after finding all potential move scores & best one, return their max value
+
+                print(indent, 'moves are: ', legal_moves)
+                print(indent, 'min score move: ', min_score_move)
+                print(indent, 'score is ', min_score)
+                return min_score_move, min_score
+
+
 class RandomAgent(MultiAgentSearchAgent):
     def getAction(self, gameState):
         legalMoves = gameState.getLegalActions(self.index)
         return random.choice(legalMoves)
-
-
-
-
