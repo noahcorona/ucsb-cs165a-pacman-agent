@@ -157,20 +157,20 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
         elif game_state.isLose():
             return None, prospective_score - 1000
         else:
+            indent = ''
+            for i in range(depth):
+                indent += '   '
+            # get all legal moves for this game state
+            prospective_moves = game_state.getLegalActions(agent_index)
+            prospective_scores = list()
+
             if agent_index == 0:
                 # agent index = 0 -> the current move is as the pacman agent
-                # get all legal moves for this game state
-                legal_moves = game_state.getLegalActions()
                 # find max of potential moves recursively
-                indent = ''
-                for i in range(depth):
-                    indent += '   '
-
-                prospective_scores = list()
                 max_score = -9999999
                 max_score_move = None
 
-                for move in legal_moves:
+                for move in prospective_moves:
                     next_agent = agent_index + 1
                     next_depth = depth
 
@@ -187,46 +187,35 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
                         max_score_move = move
                     print(indent, '    giving prospective score of ', prospective_score)
                     prospective_scores.append(prospective_score)
-                # after finding all potential move scores & best one, return their max value
+                # after finding all potential move scores & max one, return the max
 
-                print(indent, 'moves are: ', legal_moves)
+                print(indent, 'moves are: ', prospective_moves)
                 print(indent, 'max score move: ', max_score_move)
                 print(indent, 'score is ', max_score)
                 return max_score_move, max_score
             else:
-                # get all legal moves for this game state
-                legal_moves = game_state.getLegalActions(agent_index)
-                # find max of potential moves recursively
-                indent = ''
-                for i in range(depth):
-                    indent += '   '
-
-                prospective_scores = list()
+                # find min of potential moves recursively
                 min_score = 9999999
                 min_score_move = None
 
-                for move in legal_moves:
-                    next_agent = agent_index + 1
-                    next_depth = depth
+                for move in prospective_moves:
+                    next_agent = agent_index + 1    # move to next agent
+                    next_depth = depth              # keep depth unless we are currently the last agent
 
                     if next_agent == game_state.getNumAgents():
-                        next_agent = 0
-                        next_depth = depth + 1
+                        next_agent = 0          # if we are currently last ghost, set agent to pacman
+                        next_depth = depth + 1  # also increase depth, as we have calculated next move for all agents
 
-                    print(indent, 'evaluating ghost move: ', move)
+                    # generate next state and get score
                     prospective_state = game_state.generateSuccessor(agent_index, move)
                     _, prospective_score = self.minimax(game_state=prospective_state, agent_index=next_agent,
                                                         depth=next_depth)
+                    # if next score less than current min, set new min and move that led to it
                     if prospective_score < min_score:
                         min_score = prospective_score
                         min_score_move = move
-                    print(indent, '    giving prospective score of ', prospective_score)
                     prospective_scores.append(prospective_score)
-                # after finding all potential move scores & best one, return their max value
-
-                print(indent, 'moves are: ', legal_moves)
-                print(indent, 'min score move: ', min_score_move)
-                print(indent, 'score is ', min_score)
+                # after finding all potential move scores & min one, return the min
                 return min_score_move, min_score
 
 
