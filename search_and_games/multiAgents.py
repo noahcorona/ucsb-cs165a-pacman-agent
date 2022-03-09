@@ -88,14 +88,22 @@ def scoreEvaluationFunction(currentGameState, index):
     # Useful information you can extract from a GameState (pacman.py)
     newPos = currentGameState.getPacmanPosition(index)
     newFood = currentGameState.getFood()
-    newGhostStates = currentGameState.getGhostStates()
+    newGhostPositions = currentGameState.getGhostPositions()
 
     if len(newFood.asList()):
         fooddist = util.manhattanDistance(newPos, newFood.asList()[0])
     else:
         fooddist = 0
 
-    return currentGameState.getScore()[index] - fooddist
+    newGhostDistances = list()
+    for ghostPos in newGhostPositions:
+        ghostDist = util.manhattanDistance(newPos, ghostPos)
+        newGhostDistances.append(ghostDist)
+    minGhostDist = min(newGhostDistances)
+    # need to incentivize moving toward the average food area
+    print(minGhostDist)
+    print(fooddist)
+    return currentGameState.getScore()[index] - 20 * fooddist + 30 * minGhostDist
 
 
 class MultiAgentSearchAgent(Agent):
@@ -125,8 +133,6 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
         """
         best_action, best_score = self.minimax(game_state=gameState, agent_index=self.index, depth=0)
         print('making move, ', best_action)
-        # print()
-        # time.sleep(3)
         return best_action
 
     def minimax(self, game_state, agent_index, depth):
@@ -144,8 +150,28 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
             3. We are playing pacman and have reached a losing game state (return score - incentive)
                and there are no more states to explore
         """
+        newPos = game_state.getPacmanPosition(0)
+        newFood = game_state.getFood()
+        newGhostPositions = game_state.getGhostPositions()
 
-        prospective_score = game_state.getScore()[0]
+        if len(newFood.asList()):
+            fooddist = util.manhattanDistance(newPos, newFood.asList()[0])
+        else:
+            fooddist = 0
+
+        newGhostDistances = list()
+        for ghostPos in newGhostPositions:
+            ghostDist = util.manhattanDistance(newPos, ghostPos)
+            newGhostDistances.append(ghostDist)
+        minGhostDist = min(newGhostDistances)
+
+        print(minGhostDist)
+        print(fooddist)
+
+        # need to incentivize moving toward the average food area
+        
+
+        prospective_score = game_state.getScore()[0] - 20 * fooddist + 30 * minGhostDist
 
         if depth == self.depth:
             # Base case #1: max depth reached

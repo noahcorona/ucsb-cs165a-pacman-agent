@@ -29,7 +29,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$/pacman.py" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.multiagent single">
+  <component name="RunManager" selected="Python.multiagent x3">
     <configuration name="multiagent single" type="PythonConfigurationType" factoryName="Python">
       <module name="search_and_games" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -88,7 +88,7 @@
       <option name="presentableId" value="Default" />
       <updated>1646769761497</updated>
       <workItem from="1646769762658" duration="5647000" />
-      <workItem from="1646783241647" duration="6623000" />
+      <workItem from="1646783241647" duration="8334000" />
     </task>
     <servers />
   </component>
@@ -100,7 +100,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/multiAgents.py</url>
-          <line>129</line>
+          <line>135</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>
@@ -108,8 +108,9 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/search_and_games$multiagent_text.coverage" NAME="multiagent text Coverage Results" MODIFIED="1646708227944" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/search_and_games$multiagent_x3.coverage" NAME="multiagent x3 Coverage Results" MODIFIED="1646791586608" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/search_and_games$pacman.coverage" NAME="10 times Coverage Results" MODIFIED="1646710291831" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/search_and_games$multiagent.coverage" NAME="multiagent Coverage Results" MODIFIED="1646718216156" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/search_and_games$multiagent_single.coverage" NAME="multiagent single Coverage Results" MODIFIED="1646789935980" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/search_and_games$multiagent_single.coverage" NAME="multiagent single Coverage Results" MODIFIED="1646790173035" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
