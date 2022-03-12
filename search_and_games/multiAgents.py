@@ -168,7 +168,7 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
         food_avg_dist = 0.001
         food_dist = 0.001
         score = 0
-        if len (food.asList()):
+        if len(food.asList()):
             x = 0.0
             y = 0.0
             food_dist = util.manhattanDistance(position, food.asList()[0])
@@ -188,8 +188,8 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
         #print('avg food location: ', x, y)
         prospective_score = score - food_dist
 
+        # Base case #1: max depth reached
         if depth == self.depth:
-            # Base case #1: max depth reached
             return None, prospective_score
         # Base case #2: pacman moves to winning game state
         elif game_state.isWin():
@@ -197,10 +197,8 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
         # Base case #3: pacman moves to winning game state
         elif game_state.isLose():
             return None, -10000
+        # Else continue recursively with the available moves
         else:
-            indent = ''
-            for i in range(depth):
-                indent += '   '
             # get all legal moves for this game state
             prospective_moves = game_state.getLegalActions(agent_index)
             prospective_scores = list()
@@ -219,20 +217,14 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
                         next_agent = 0
                         next_depth = depth + 1
 
-                    #print(indent, 'evaluating pacman move: ', move)
                     prospective_state = game_state.generatePacmanSuccessor(0, move)
                     _, prospective_score = self.minimax(game_state=prospective_state, agent_index=next_agent,
                                                         depth=next_depth)
                     if prospective_score > max_score:
                         max_score = prospective_score
                         max_score_move = move
-                    #print(indent, '    giving prospective score of ', prospective_score)
                     prospective_scores.append(prospective_score)
                 # after finding all potential move scores & max one, return the max
-
-                #print(indent, 'moves are: ', prospective_moves)
-                #print(indent, 'max score move: ', max_score_move)
-                #print(indent, 'score is ', max_score)
                 return max_score_move, max_score
             else:
                 # find min of potential moves recursively
