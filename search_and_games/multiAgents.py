@@ -153,39 +153,15 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
 
         position = game_state.getPacmanPosition(0)
         food = game_state.getFood()
-        ghost_positions = game_state.getGhostPositions()
 
-        ghost_distances = list()
-        for ghostPos in ghost_positions:
-            ghost_dist = util.manhattanDistance(position, ghostPos)
-            ghost_distances.append(ghost_dist)
-        min_ghost_dist = min(ghost_distances)
-        if min_ghost_dist == 0:
-            min_ghost_dist = 0.001
-
-        # to incentivize moving toward the average food area
-        # we also consider the point of the average food location
-        food_avg_dist = 0.001
         food_dist = 0.001
         score = 0
         if len(food.asList()):
-            x = 0.0
-            y = 0.0
             food_dist = util.manhattanDistance(position, food.asList()[0])
-            for food_loc in food.asList():
-                x += food_loc[0]
-                y += food_loc[1]
-            x /= floor(len(food.asList()))
-            y /= floor(len(food.asList()))
 
-            food_avg_dist = manhattanDistance(position, (floor(x), floor(y)))
-            #print('food avg dist: {:.2f}'.format(food_avg_dist))
-            score = game_state.getScore()[0]
+        score = game_state.getScore()[0]
         if score == 0:
             score = 0.001
-        if food_avg_dist == 0:
-            food_avg_dist = 0.001
-        #print('avg food location: ', x, y)
         prospective_score = score - food_dist
 
         # Base case #1: max depth reached
@@ -224,8 +200,13 @@ class MultiPacmanAgent(MultiAgentSearchAgent):
                         max_score = prospective_score
                         max_score_move = move
                     prospective_scores.append(prospective_score)
+
+                max_score_moves = list()
+                for move, score in zip(prospective_moves, prospective_scores):
+                    if score == max_score:
+                        max_score_moves.append(move)
                 # after finding all potential move scores & max one, return the max
-                return max_score_move, max_score
+                return random.choice(max_score_moves), max_score
             else:
                 # find min of potential moves recursively
                 min_score = 9999999
